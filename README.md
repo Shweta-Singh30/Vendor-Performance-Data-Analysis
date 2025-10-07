@@ -1,103 +1,242 @@
 # Vendor Performance Analysis & Inventory Optimization
 
 ## 📊 Project Overview
-This project analyzes vendor performance, inventory turnover, and profitability metrics to provide actionable insights for optimizing retail and wholesale operations. The analysis identifies underperforming brands, evaluates vendor dependencies, assesses bulk purchasing impacts, and recommends strategies for improving profitability and inventory efficiency.
+A comprehensive data analysis project that evaluates vendor performance, inventory turnover, and profitability metrics to provide actionable insights for retail and wholesale operations optimization.
 
-## 🎯 Business Problem
-Effective inventory and sales management are critical for profitability in retail and wholesale. Companies face challenges with:
-- Inefficient pricing strategies
-- Poor inventory turnover
-- Vendor dependency risks
-- Profitability variance across vendors
+## 🚀 Quick Start
 
-This analysis aims to address these challenges through data-driven insights and recommendations.
+### Prerequisites
+- Python 3.8 or higher
+- SQLite3
+- Git
 
-## 📁 Dataset Description
-The dataset contains 10,692 records with the following key metrics:
-- **Vendor Information**: VendorNumber, Brand
-- **Financial Metrics**: PurchasePrice, ActualPrice, GrossProfit, ProfitMargin
-- **Inventory Metrics**: Volume, TotalPurchaseQuantity, TotalSalesQuantity, StockTurnover
-- **Operational Metrics**: FreightCost, TotalExciseTax
+### Installation & Setup
 
-### Data Filtering Applied
-To ensure reliable insights, the analysis filtered:
-- Gross Profit ≤ 0 (exclude loss-making transactions)
-- Profit Margin ≤ 0 (focus on profitable operations)
-- Total Sales Quantity = 0 (eliminate unsold inventory)
+1. **Clone the Repository**
+```bash
+git clone https://github.com/Shweta-Singh30/Vendor-Performance-Data-Analysis.git
+cd Vendor-Performance-Data-Analysis
+```
 
-## 🔍 Key Insights
+2. **Create Virtual Environment**
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
 
-### 1. Brand Performance Optimization
-- Identified **198 brands** with low sales but high profit margins (60-90%)
-- Opportunity for targeted marketing and pricing adjustments to boost volume
+# macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+```
 
-### 2. Vendor Dependency Analysis
+3. **Install Dependencies**
+```bash
+pip install pandas sqlalchemy
+```
+
+4. **Prepare Directory Structure**
+```bash
+mkdir -p data logs
+```
+
+5. **Add Your CSV Files**
+Place these files in the `data/` directory:
+- `purchases.csv`
+- `sales.csv` 
+- `vendor_invoice.csv`
+- `purchase_prices.csv`
+
+6. **Run the Analysis Pipeline**
+```bash
+# Step 1: Ingest data into database
+python ingestion_db.py
+
+# Step 2: Generate vendor summary
+python get_vendor_summary.py
+```
+
+## 📋 Requirements
+
+### Python Packages
+- pandas>=1.4.0
+- sqlalchemy>=1.4.0
+- sqlite3 (built-in)
+
+### System Requirements
+- RAM: 4GB minimum
+- Storage: 100MB free space
+- OS: Windows, macOS, or Linux
+
+## 📁 Project Structure
+```
+vendor-performance-analysis/
+├── data/                    # Raw CSV files
+├── logs/                    # Application logs
+├── ingestion_db.py          # Data ingestion script
+├── get_vendor_summary.py    # Analysis script
+├── inventory.db             # Generated database
+└── README.md
+```
+
+## 🔧 Scripts Overview
+
+### ingestion_db.py
+**Purpose**: Automatically ingests all CSV files into SQLite database.
+
+**Features**:
+- Detects all CSV files in data directory
+- Creates tables with filename as table name
+- Comprehensive logging
+- Performance timing
+
+**Usage**:
+```bash
+python ingestion_db.py
+```
+
+### get_vendor_summary.py
+**Purpose**: Creates comprehensive vendor performance summary.
+
+**Key Functions**:
+- Merges purchase, sales, and freight data
+- Calculates business metrics:
+  - Gross Profit
+  - Profit Margin (%)
+  - Stock Turnover Ratio
+  - Sales to Purchase Ratio
+- Data cleaning and transformation
+- Saves results to database
+
+**Usage**:
+```bash
+python get_vendor_summary.py
+```
+
+## 📊 Key Business Insights
+
+### 1. Vendor Dependency
 - **Top 10 vendors** contribute 65.69% of total purchases
-- High dependency creates supply chain risks requiring diversification
+- **Risk**: High dependency on few suppliers
+- **Solution**: Diversify vendor partnerships
 
-### 3. Bulk Purchasing Impact
-- **72% lower unit costs** for bulk orders ($10.78 vs. $39.06 per unit)
-- Strategic advantage in encouraging larger orders
+### 2. Bulk Purchasing Benefits
+- **72% lower unit costs** for bulk orders
+- Bulk price: $10.78 vs Small order: $39.06 per unit
+- **Recommendation**: Leverage bulk purchasing strategies
 
-### 4. Inventory Turnover Issues
+### 3. Inventory Optimization
 - **$2.71M** tied up in unsold inventory
-- Identified vendors with low stock turnover (0.61-0.82) requiring management
+- Identified slow-moving vendors (StockTurnover: 0.61-0.82)
+- **Action**: Adjust purchase quantities and launch clearance sales
 
-### 5. Profit Margin Comparison
+### 4. Profit Margin Analysis
 - **Top vendors**: 31.17% mean profit margin
 - **Low-performing vendors**: 41.55% mean profit margin
-- Statistical testing confirms significant difference between groups
+- **Statistical validation**: Significant difference confirmed
+- **Strategy**: High-margin vendors focus on pricing, top sellers focus on cost efficiency
 
-## 📈 Correlation Insights
-- **Strong correlation** (0.999) between purchase and sales quantities
-- **Weak correlation** between purchase price and sales revenue/profit
-- **Negative correlation** between sales price and profit margin
+### 5. Brand Performance
+- **198 brands** with high margins but low sales
+- Profit margins: 60-90%
+- **Opportunity**: Targeted marketing and pricing adjustments
 
-## 🚀 Recommendations
+## 🗃️ Database Output
+
+### Generated Tables
+- `purchases` - Purchase transactions
+- `sales` - Sales transactions
+- `vendor_invoice` - Vendor invoices
+- `purchase_prices` - Product pricing
+- `vendor_sales_summary` - Comprehensive performance metrics
+
+### vendor_sales_summary Columns
+- VendorNumber, VendorName, Brand, Description
+- PurchasePrice, ActualPrice, Volume
+- TotalPurchaseQuantity, TotalPurchaseDollars
+- TotalSalesQuantity, TotalSalesDollars
+- GrossProfit, ProfitMargin, StockTurnover, SalesToPurchaseRatio
+
+## 📈 Usage Examples
+
+### Query High-Margin Brands
+```python
+import sqlite3
+import pandas as pd
+
+conn = sqlite3.connect('inventory.db')
+query = """
+SELECT VendorName, Brand, ProfitMargin, TotalSalesDollars
+FROM vendor_sales_summary 
+WHERE ProfitMargin > 50 
+ORDER BY ProfitMargin DESC
+"""
+df = pd.read_sql_query(query, conn)
+print(df)
+```
+
+### Analyze Slow-Moving Inventory
+```python
+query = """
+SELECT VendorName, StockTurnover, TotalPurchaseDollars
+FROM vendor_sales_summary 
+WHERE StockTurnover < 0.8
+ORDER BY StockTurnover ASC
+"""
+slow_moving = pd.read_sql_query(query, conn)
+print(slow_moving)
+```
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+1. **Missing CSV Files**
+   - Ensure all required CSV files are in `data/` directory
+   - Check file names match expected names
+
+2. **Database Errors**
+   - Delete `inventory.db` and rerun scripts
+   - Check file permissions
+
+3. **Import Errors**
+   - Ensure virtual environment is activated
+   - Run `pip install pandas sqlalchemy`
+
+### Log Files
+Check for detailed error information:
+- `logs/ingestion_db.log` - Data ingestion process
+- `logs/get_vendor_summary.log` - Analysis process
+
+## 🎯 Business Recommendations
 
 ### Immediate Actions
-- Implement targeted promotions for high-margin, low-sales brands
-- Diversify vendor base to reduce dependency on top 10 suppliers
-- Optimize bulk purchasing strategies for cost savings
+- Implement promotions for 198 high-margin, low-sales brands
+- Diversify vendor base to reduce dependency
+- Optimize bulk purchasing strategies
 
 ### Strategic Initiatives
-- Develop clearance strategies for slow-moving inventory ($2.71M value)
-- Enhance marketing and distribution for low-performing vendors
-- Re-evaluate pricing strategies across vendor segments
+- Develop clearance strategies for $2.71M slow-moving inventory
+- Enhance marketing for low-performing vendors
+- Re-evaluate pricing strategies
 
 ### Operational Improvements
 - Monitor stock turnover metrics regularly
 - Implement inventory management protocols
 - Optimize freight and logistics costs
 
-## 📊 Technical Implementation
-The analysis includes:
-- Exploratory Data Analysis (EDA)
-- Statistical hypothesis testing
-- Correlation analysis
-- Profit margin confidence intervals
-- Vendor segmentation and performance benchmarking
+## 📝 Final Results
+After running both scripts, you'll have:
+- Complete SQLite database with all processed data
+- Comprehensive vendor performance metrics
+- Log files for debugging and monitoring
+- Ready-to-use data for business intelligence and reporting
 
-## 📄 Files Included
-- `Vendor_Performance_Report.pdf` - Complete analysis and findings
-- `README.md` - Project documentation
-
-## 🛠 Skills Demonstrated
-- Data Analysis & Visualization
-- Statistical Testing
-- Business Intelligence
-- Inventory Management
-- Vendor Relationship Management
-- Profitability Analysis
-
-## 📈 Business Impact
-Implementation of these recommendations can lead to:
-- Improved profit margins through optimized pricing
-- Reduced inventory holding costs
-- Enhanced supply chain resilience
-- Better cash flow management
-- Sustainable profitability growth
+## 🤝 Support
+For issues or questions:
+1. Check the log files in `logs/` directory
+2. Ensure all CSV files are properly formatted
+3. Verify Python and package versions
 
 ---
 
-**Note**: This analysis provides a foundation for data-driven decision making in retail and wholesale inventory management. Regular monitoring and adjustment of these strategies is recommended for ongoing optimization.
+**Success Message**: After running both scripts successfully, you should see "Ingestion Complete" and "Completed" messages in the logs, with the `vendor_sales_summary` table ready for analysis in `inventory.db`.
